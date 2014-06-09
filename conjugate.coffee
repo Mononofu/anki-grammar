@@ -1,6 +1,24 @@
+# The order must be equal for all vowels or replacing won't work correctly.
+aSounds = ["ら", "や", "ま", "は", "な", "た", "さ", "か", "あ", "ぱ", "ば", "だ", "ざ", "が"]
+iSounds = ["り", "",   "み", "ひ", "に", "ち", "し", "き", "い", "ぴ", "び", "ぢ", "じ", "ぎ"]
+uSounds = ["る", "ゆ", "む", "ふ", "ぬ", "つ", "す", "く", "う", "ぷ", "ぶ", "づ", "ず", "ぐ"]
+eSounds = ["れ", "",   "め", "へ", "ね", "て", "せ", "け", "え", "ぺ", "べ", "で", "ぜ", "げ"]
+oSounds = ["ろ", "よ", "も", "ほ", "の", "と", "そ", "こ", "お", "ぽ", "ぼ", "ど", "ぞ", "ご"]
+
+String.prototype.replaceLast = (from, to) ->
+  s = this.toString()
+  for i in [0...from.length]
+    if s[-1...] == from[i]
+      return s[0...-1] + to[i]
+  throw new Exception(s + " ends with unknown character " + s[-1...])
+
 class Word
   constructor: (@_plain, @_reading, @_meaning) ->
+
   plain: -> @_plain
+  reading: -> @_reading
+  meaning: -> @_meaning
+
   pastNegative: -> @negative().replace(/い$/, "かった")
   teNegative: -> @negative().replace(/い$/, "くて")
 
@@ -15,7 +33,7 @@ class RuVerb extends Verb
   stem: -> @_plain.replace(/る$/, "")
   negative: -> @stem() + "ない" # Drop る and add ない.
   past: -> @stem() + "た" # Drop る and add た.
-  potential: -> @stem() + "られる"
+  potential: -> new RuVerb(@stem() + "られる")
 
 class UVerb extends Verb
   stem: -> @_plain # u-sound changes to i-sound.
@@ -58,16 +76,17 @@ class UVerb extends Verb
         .replace(/す$/, "した")
         .replace(/く$/, "いた")
         .replace(/ぐ$/, "いだ")
-  potential: -> @_plain # u-sound changes to e-sound.
-    .replace(/う$/, "え")
-    .replace(/る$/, "れ")
-    .replace(/む$/, "め")
-    .replace(/ぶ$/, "べ")
-    .replace(/ぬ$/, "ね")
-    .replace(/つ$/, "て")
-    .replace(/す$/, "せ")
-    .replace(/く$/, "け")
-    .replace(/ぐ$/, "げ") + "る"
+  potential: ->
+    newPlain = @_plain.replace(/う$/, "え")
+      .replace(/る$/, "れ")
+      .replace(/む$/, "め")
+      .replace(/ぶ$/, "べ")
+      .replace(/ぬ$/, "ね")
+      .replace(/つ$/, "て")
+      .replace(/す$/, "せ")
+      .replace(/く$/, "け")
+      .replace(/ぐ$/, "げ") + "る"
+    new RuVerb(newPlain)
 
 class Suru extends Verb
   constructor: -> @_plain = "する"
@@ -138,7 +157,7 @@ classify = (plain, reading, meaning) -> switch reading
   when "する" then new Suru()
   when "くる" then new Kuru()
   when "いい" then new II()
-  else switch reading.slice(-1)
+  else switch reading[-1..]
     # Words ending in u-sound that is not る are u-verbs.
     when "う", "つ", "む", "ぶ", "ぬ", "す", "く", "ぐ" then new UVerb(plain, reading, meaning)
     # If they end in る, it depends on the sound preceding the る.
@@ -148,7 +167,7 @@ classify = (plain, reading, meaning) -> switch reading
       when "要る", "帰る", "切る", "喋る", "知る", "入る", "走る", "減る", "焦る", "限る", "蹴る"
          , "滑る", "握る", "練る", "参る", "交じる", "混じる", "嘲る", "覆る", "遮る", "罵る", "捻る"
          , "翻る", "滅入る", "蘇る" then new UVerb(plain, reading, meaning)
-      else switch reading.slice(-2, -1)
+      else switch reading[-2...-1]
         # For i- and e- sounds, it's a ru-verb, except for the exceptions above.'
         when "り", "み", "ひ", "に", "ち", "し", "き", "い"
            , "れ", "め", "へ", "ね", "て", "せ", "け", "え"
@@ -169,4 +188,4 @@ $ = (s) ->
 
 word = words[Math.floor(Math.random(words.length) * words.length)]
 $('#front').innerHTML = word.plain()
-$('#back').innerHTML = word.politePastNegative()
+$('#back').innerHTML = word.potential().negative()
