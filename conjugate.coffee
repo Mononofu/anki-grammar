@@ -15,6 +15,7 @@ class RuVerb extends Verb
   stem: -> @_plain.replace(/る$/, "")
   negative: -> @stem() + "ない" # Drop る and add ない.
   past: -> @stem() + "た" # Drop る and add た.
+  potential: -> @stem() + "られる"
 
 class UVerb extends Verb
   stem: -> @_plain # u-sound changes to i-sound.
@@ -57,18 +58,30 @@ class UVerb extends Verb
         .replace(/す$/, "した")
         .replace(/く$/, "いた")
         .replace(/ぐ$/, "いだ")
+  potential: -> @_plain # u-sound changes to e-sound.
+    .replace(/う$/, "え")
+    .replace(/る$/, "れ")
+    .replace(/む$/, "め")
+    .replace(/ぶ$/, "べ")
+    .replace(/ぬ$/, "ね")
+    .replace(/つ$/, "て")
+    .replace(/す$/, "せ")
+    .replace(/く$/, "け")
+    .replace(/ぐ$/, "げ") + "る"
 
 class Suru extends Verb
   constructor: -> @_plain = "する"
   stem: -> "し"
   negative: -> "しない"
   past: -> "した"
+  potential: -> "できる"
 
 class Kuru extends Verb
   constructor: -> @_plain = "くる"
   stem: -> "き"
   negative: -> "こない"
   past: -> "きた"
+  potential: -> "こられる"
 
 class Adjective extends Word
   polite: -> @_plain + "です"
