@@ -1,5 +1,5 @@
 (function() {
-  var $, Adjective, IAdjective, II, Kuru, NaAdjective, Negative, PoliteAdjective, PoliteAdjectiveNegative, PoliteNaAdjective, PoliteVerb, PoliteVerbNegative, RuVerb, Suru, UVerb, Verb, Word, aSounds, adjectives, classify, conj, eSounds, elem, iSounds, oSounds, uSounds, verbs, w, want, word, words, _i, _j, _len, _len2, _ref, _ref2,
+  var $, Adjective, IAdjective, II, Kuru, NaAdjective, Negative, PoliteAdjective, PoliteAdjectiveNegative, PoliteNaAdjective, PoliteVerb, PoliteVerbNegative, RuVerb, Suru, UVerb, Verb, Word, aSounds, adjectives, candidates, classify, conj, eSounds, elem, iSounds, oSounds, query, uSounds, verbs, w, want, word, words, _i, _j, _len, _len2, _ref, _ref2,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -721,6 +721,25 @@
 
   word = words[Math.floor(Math.random(words.length) * words.length)];
 
+  if (location.hash !== "") {
+    query = location.hash.slice(1);
+    $('#query').value = query;
+    candidates = (function() {
+      var _i, _len, _results;
+      _results = [];
+      for (_i = 0, _len = words.length; _i < _len; _i++) {
+        w = words[_i];
+        if (w.plain() === query || w.reading() === query) _results.push(w);
+      }
+      return _results;
+    })();
+    if (candidates.length > 0) {
+      word = candidates[0];
+    } else {
+      word = classify(query, query, "n/a");
+    }
+  }
+
   _ref = $('.replace');
   for (_i = 0, _len = _ref.length; _i < _len; _i++) {
     elem = _ref[_i];
@@ -737,5 +756,16 @@
 
     }
   }
+
+  window.random = function() {
+    location.hash = "";
+    return location.reload();
+  };
+
+  window.conjugate = function() {
+    location.hash = $('#query').value;
+    location.reload();
+    return false;
+  };
 
 }).call(this);

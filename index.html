@@ -3,14 +3,48 @@
   <head>
     <meta charset="utf-8">
     <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css">
+    <style>
+    body {
+      padding-top: 30px;
+    }
+    </style>
   </head>
   <body>
+    <div class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="#">Anki Grammar</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <li class="active"><a href="#" onclick="javascript:random();">Random</a></li>
+          </ul>
+          <form class="navbar-form navbar-right" role="form" onsubmit="return conjugate();" action="#">
+            <div class="form-group">
+              <input type="text" placeholder="言葉" class="form-control" id="query">
+            </div>
+            <button type="submit" class="btn btn-success" value="conjugate">Conjugate</button>
+          </form>
+        </div><!--/.navbar-collapse -->
+      </div>
+    </div>
+
     <div class="container">
       <div class="page-header">
         <h1 class="replace">plain</h1>
         <p><span class="replace">plain</span> (<span class="replace">reading</span>) is a <span class="replace">type</span> with the meaning <i><span class="replace">meaning</span></i></p>
       </div>
-      <div class="row">
+      <div class="row list">
+        <ul>
+        </ul>
+      </div>
+      <div class="row detail">
         <table class="table">
           <tr>
             <th>Tense</th>
