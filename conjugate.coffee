@@ -28,6 +28,7 @@ class Negative extends Word
   past: -> @_plain.replace(/い$/, "かった")
   te: -> @_plain.replace(/い$/, "くて")
   conditional: -> @_plain.replace(/い$/, "ければ")
+  adverb: -> @_plain.replace(/い$/, "く")
 
 class Verb extends Word
   polite: -> new PoliteVerb(@stem())
@@ -48,6 +49,7 @@ class PoliteVerbNegative extends PoliteVerb
   past: -> @_plain + "ませんでした"
 
 class RuVerb extends Verb
+  type: -> "ru-verb"
   stem: -> @_plain.replace(/る$/, "")
   negative: -> new Negative(@stem() + "ない") # Drop る and add ない.
   past: -> @stem() + "た" # Drop る and add た.
@@ -56,6 +58,7 @@ class RuVerb extends Verb
   conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
 
 class UVerb extends Verb
+  type: -> "u-verb"
   stem: -> @_plain.replaceLast(uSounds, iSounds)
   negative: ->
     base = switch @_plain
@@ -80,7 +83,7 @@ class UVerb extends Verb
   conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
 
 class Suru extends Verb
-  constructor: -> @_plain = "する"
+  type: -> "suru-verb"
   stem: -> "し"
   negative: -> new Negative("しない")
   past: -> "した"
@@ -88,7 +91,7 @@ class Suru extends Verb
   volitional: -> "しよう"
 
 class Kuru extends Verb
-  constructor: -> @_plain = "くる"
+  type: -> "kuru-verb"
   stem: -> "き"
   negative: -> new Negative("こない")
   past: -> "きた"
@@ -115,6 +118,7 @@ class PoliteNaAdjective extends PoliteAdjective
   past: -> @_plain + "でした"
 
 class IAdjective extends Adjective
+  type: -> "i-adjective"
   adverb: -> @_plain.replace(/い$/, "く")
   negative: -> new Negative(@_plain.replace(/い$/, "くない"))
   past: -> @_plain.replace(/い$/, "かった")
@@ -122,10 +126,10 @@ class IAdjective extends Adjective
   conditional: -> @_plain.replace(/い$/, "ければ")
 
 class II extends IAdjective
-  constructor: -> @_plain = "よい"
   plain: -> "いい"
 
 class NaAdjective extends Adjective
+  type: -> "na-adjective"
   adverb: -> @_plain + "に"
   negative: -> new Negative(@_plain + "じゃない")
   past: -> @_plain + "だった"
@@ -158,13 +162,20 @@ verbs = [
 
 adjectives = [
   {plain: "良い", reading: "いい", meaning: "good"}
+  {plain: "奇麗", reading: "きれい", meaning: "pretty"}
+  {plain: "静か", reading: "しずか", meaning: "quiet"}
+  {plain: "親切", reading: "しんせつ", meaning: "kind"}
+  {plain: "好き", reading: "すき", meaning: "like"}
+  {plain: "嫌い", reading: "きらい", meaning: "hate"}
+  {plain: "美味しい", reading: "おいしい", meaning: "tasty"}
+  {plain: "高い", reading: "たかい", meaning: "tall"}
 ]
 
 classify = (plain, reading, meaning) -> switch reading
-  when "する" then new Suru()
-  when "くる" then new Kuru()
-  when "いい" then new II()
-  else switch reading[-1..]
+  when "する" then new Suru(plain, reading, meaning)
+  when "くる" then new Kuru(plain, reading, meaning)
+  when "いい" then new II(plain, reading, meaning)
+  else switch reading[-1...]
     # Words ending in u-sound that is not る are u-verbs.
     when "う", "つ", "む", "ぶ", "ぬ", "す", "く", "ぐ" then new UVerb(plain, reading, meaning)
     # If they end in る, it depends on the sound preceding the る.
@@ -180,9 +191,10 @@ classify = (plain, reading, meaning) -> switch reading
           new RuVerb(plain, reading, meaning)
         else # For a-, u- and o-sounds (= everything else), it's a u-verb.
           new UVerb(plain, reading, meaning)
-    when "い" then switch reading
+    when "い" then switch plain
       when "嫌い", "奇麗", "綺麗", "きれい" then new NaAdjective(plain, reading, meaning)
       else new IAdjective(plain, reading, meaning)
+    else new NaAdjective(plain, reading, meaning)
 
 words = (classify(w.plain, w.reading, w.meaning) for w in verbs.concat(adjectives))
 

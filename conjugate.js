@@ -79,6 +79,10 @@
       return this._plain.replace(/い$/, "ければ");
     };
 
+    Negative.prototype.adverb = function() {
+      return this._plain.replace(/い$/, "く");
+    };
+
     return Negative;
 
   })(Word);
@@ -167,6 +171,10 @@
       RuVerb.__super__.constructor.apply(this, arguments);
     }
 
+    RuVerb.prototype.type = function() {
+      return "ru-verb";
+    };
+
     RuVerb.prototype.stem = function() {
       return this._plain.replace(/る$/, "");
     };
@@ -202,6 +210,10 @@
     function UVerb() {
       UVerb.__super__.constructor.apply(this, arguments);
     }
+
+    UVerb.prototype.type = function() {
+      return "u-verb";
+    };
 
     UVerb.prototype.stem = function() {
       return this._plain.replaceLast(uSounds, iSounds);
@@ -250,8 +262,12 @@
     __extends(Suru, _super);
 
     function Suru() {
-      this._plain = "する";
+      Suru.__super__.constructor.apply(this, arguments);
     }
+
+    Suru.prototype.type = function() {
+      return "suru-verb";
+    };
 
     Suru.prototype.stem = function() {
       return "し";
@@ -282,8 +298,12 @@
     __extends(Kuru, _super);
 
     function Kuru() {
-      this._plain = "くる";
+      Kuru.__super__.constructor.apply(this, arguments);
     }
+
+    Kuru.prototype.type = function() {
+      return "kuru-verb";
+    };
 
     Kuru.prototype.stem = function() {
       return "き";
@@ -401,6 +421,10 @@
       IAdjective.__super__.constructor.apply(this, arguments);
     }
 
+    IAdjective.prototype.type = function() {
+      return "i-adjective";
+    };
+
     IAdjective.prototype.adverb = function() {
       return this._plain.replace(/い$/, "く");
     };
@@ -430,7 +454,7 @@
     __extends(II, _super);
 
     function II() {
-      this._plain = "よい";
+      II.__super__.constructor.apply(this, arguments);
     }
 
     II.prototype.plain = function() {
@@ -448,6 +472,10 @@
     function NaAdjective() {
       NaAdjective.__super__.constructor.apply(this, arguments);
     }
+
+    NaAdjective.prototype.type = function() {
+      return "na-adjective";
+    };
 
     NaAdjective.prototype.adverb = function() {
       return this._plain + "に";
@@ -566,6 +594,34 @@
       plain: "良い",
       reading: "いい",
       meaning: "good"
+    }, {
+      plain: "奇麗",
+      reading: "きれい",
+      meaning: "pretty"
+    }, {
+      plain: "静か",
+      reading: "しずか",
+      meaning: "quiet"
+    }, {
+      plain: "親切",
+      reading: "しんせつ",
+      meaning: "kind"
+    }, {
+      plain: "好き",
+      reading: "すき",
+      meaning: "like"
+    }, {
+      plain: "嫌い",
+      reading: "きらい",
+      meaning: "hate"
+    }, {
+      plain: "美味しい",
+      reading: "おいしい",
+      meaning: "tasty"
+    }, {
+      plain: "高い",
+      reading: "たかい",
+      meaning: "tall"
     }
   ];
 
@@ -573,11 +629,11 @@
     var _ref;
     switch (reading) {
       case "する":
-        return new Suru();
+        return new Suru(plain, reading, meaning);
       case "くる":
-        return new Kuru();
+        return new Kuru(plain, reading, meaning);
       case "いい":
-        return new II();
+        return new II(plain, reading, meaning);
       default:
         switch (reading.slice(-1)) {
           case "う":
@@ -626,7 +682,7 @@
             }
             break;
           case "い":
-            switch (reading) {
+            switch (plain) {
               case "嫌い":
               case "奇麗":
               case "綺麗":
@@ -635,6 +691,9 @@
               default:
                 return new IAdjective(plain, reading, meaning);
             }
+            break;
+          default:
+            return new NaAdjective(plain, reading, meaning);
         }
     }
   };
