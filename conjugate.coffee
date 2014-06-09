@@ -10,7 +10,7 @@ String.prototype.replaceLast = (from, to) ->
   for i in [0...from.length]
     if s[-1...] == from[i]
       return s[0...-1] + to[i]
-  throw new Exception(s + " ends with unknown character " + s[-1...])
+  return s
 
 class Word
   constructor: (@_plain, @_reading, @_meaning) ->
@@ -19,100 +19,101 @@ class Word
   reading: -> @_reading
   meaning: -> @_meaning
 
-  pastNegative: -> @negative().replace(/い$/, "かった")
-  teNegative: -> @negative().replace(/い$/, "くて")
+class Negative extends Word
+  constructor: (@_plain) ->
+  plain: -> @_plain
+  toString: -> @plain()
+  past: -> @_plain.replace(/い$/, "かった")
+  te: -> @_plain.replace(/い$/, "くて")
+  conditional: -> @_plain.replace(/い$/, "ければ")
 
 class Verb extends Word
-  polite: -> @stem() + "ます"
-  politeNegative: -> @stem() + "ません"
-  politePast: -> @stem() + "ました"
-  politePastNegative: -> @stem() + "ませんでした"
+  polite: -> new PoliteVerb(@stem())
   te: -> @past().replace(/た$/, "て").replace(/だ$/, "で")
+  conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
+
+class PoliteVerb
+  constructor: (@_plain) ->
+  plain: -> @_plain + "ます"
+  toString: -> @plain()
+  negative: -> new PoliteVerbNegative(@_plain)
+  past: -> @_plain + "ました"
+  volitional: -> @_plain + "ましょう"
+
+class PoliteVerbNegative
+  constructor: (@_plain) ->
+  plain: -> @_plain + "ません"
+  toString: -> @plain()
+  past: -> @_plain + "ませんでした"
 
 class RuVerb extends Verb
   stem: -> @_plain.replace(/る$/, "")
-  negative: -> @stem() + "ない" # Drop る and add ない.
+  negative: -> new Negative(@stem() + "ない") # Drop る and add ない.
   past: -> @stem() + "た" # Drop る and add た.
   potential: -> new RuVerb(@stem() + "られる")
+  volitional: -> @stem() + "よう"
 
 class UVerb extends Verb
-  stem: -> @_plain # u-sound changes to i-sound.
-    .replace(/う$/, "い")
-    .replace(/る$/, "り")
-    .replace(/む$/, "み")
-    .replace(/ぶ$/, "び")
-    .replace(/ぬ$/, "に")
-    .replace(/つ$/, "ち")
-    .replace(/す$/, "し")
-    .replace(/く$/, "き")
-    .replace(/ぐ$/, "ぎ")
+  stem: -> @_plain.replaceLast(uSounds, iSounds)
   negative: ->
-    switch @_plain
+    base = switch @_plain
       when "ある" then "ない" # Exception: ある turns into ない.
-    # For other words, replace u-sound with a-equivalent, add ない.
-    # Except for う, that turns into わ.
-      else @_plain
-        .replace(/う$/, "わ")
-        .replace(/る$/, "ら")
-        .replace(/む$/, "ま")
-        .replace(/ぶ$/, "ば")
-        .replace(/ぬ$/, "な")
-        .replace(/つ$/, "た")
-        .replace(/す$/, "さ")
-        .replace(/く$/, "か")
-        .replace(/ぐ$/, "が") + "ない"
-  past: ->
-    switch @_plain
-      when "行く" then "行った" # Exception: 行く turns into 行った.
-      # For other words, replace u-sound with a-equivalent, add ない.
-      # Except for う, that turns into わ.
-      else @_plain
-        .replace(/う$/, "った")
-        .replace(/つ$/, "った")
-        .replace(/る$/, "った")
-        .replace(/む$/, "んだ")
-        .replace(/ぶ$/, "んだ")
-        .replace(/ぬ$/, "んだ")
-        .replace(/す$/, "した")
-        .replace(/く$/, "いた")
-        .replace(/ぐ$/, "いだ")
-  potential: ->
-    newPlain = @_plain.replace(/う$/, "え")
-      .replace(/る$/, "れ")
-      .replace(/む$/, "め")
-      .replace(/ぶ$/, "べ")
-      .replace(/ぬ$/, "ね")
-      .replace(/つ$/, "て")
-      .replace(/す$/, "せ")
-      .replace(/く$/, "け")
-      .replace(/ぐ$/, "げ") + "る"
-    new RuVerb(newPlain)
+      # For other words, replace u-sound with a-equivalent, add ない (except for う turns into わ).
+      else @_plain.replace(/う$/, "わ").replaceLast(uSounds, aSounds) + "ない"
+    new Negative(base)
+  past: -> switch @_plain
+    when "行く" then "行った" # Exception: 行く turns into 行った.
+    else @_plain
+      .replace(/う$/, "った")
+      .replace(/つ$/, "った")
+      .replace(/る$/, "った")
+      .replace(/む$/, "んだ")
+      .replace(/ぶ$/, "んだ")
+      .replace(/ぬ$/, "んだ")
+      .replace(/す$/, "した")
+      .replace(/く$/, "いた")
+      .replace(/ぐ$/, "いだ")
+  potential: -> new RuVerb(@_plain.replaceLast(uSounds, eSounds) + "る")
+  volitional: -> @_plain.replaceLast(uSounds, oSounds) + "う"
 
 class Suru extends Verb
   constructor: -> @_plain = "する"
   stem: -> "し"
-  negative: -> "しない"
+  negative: -> new Negative("しない")
   past: -> "した"
-  potential: -> "できる"
+  potential: -> new RuVerb("できる")
 
 class Kuru extends Verb
   constructor: -> @_plain = "くる"
   stem: -> "き"
-  negative: -> "こない"
+  negative: -> new Negative("こない")
   past: -> "きた"
-  potential: -> "こられる"
+  potential: -> new RuVerb("こられる")
 
 class Adjective extends Word
-  polite: -> @_plain + "です"
-  politeNegative: -> @negative() + "です"
-  politePast: -> @past() + "です"
-  politePastNegative: -> @pastNegative() + "です"
+  polite: -> new PoliteAdjective(@_plain)
+
+class PoliteAdjective
+  constructor: (@_plain) ->
+  plain: -> @_plain + "です"
+  negative: -> new PoliteAdjectiveNegative(this)
+  past: -> @past() + "です"
+  pastNegative: -> @pastNegative() + "です"
+
+class PoliteAdjectiveNegative
+  constructor: (@_plain) ->
+  plain: -> @_plain.negative() + "です"
+  past: -> @_plain.negative().past() + "です"
+
+class PoliteNaAdjective extends PoliteAdjective
+  past: -> @_plain + "でした"
 
 class IAdjective extends Adjective
   adverb: -> @_plain.replace(/い$/, "く")
-  negative: -> @_plain.replace(/い$/, "くない")
+  negative: -> new Negative(@_plain.replace(/い$/, "くない"))
   past: -> @_plain.replace(/い$/, "かった")
   te: -> @_plain.replace(/い$/, "くて")
+  conditional: -> @_plain.replace(/い$/, "ければ")
 
 class II extends IAdjective
   constructor: -> @_plain = "よい"
@@ -120,10 +121,10 @@ class II extends IAdjective
 
 class NaAdjective extends Adjective
   adverb: -> @_plain + "に"
-  negative: -> @_plain + "じゃない"
+  negative: -> new Negative(@_plain + "じゃない")
   past: -> @_plain + "だった"
-  politePast: -> @_plain + "でした"
   te: -> @_plain + "で"
+  conditional: -> @_plain + "であれば"
 
 verbs = [
   {plain: "見る", reading: "みる", meaning: "to see"}
@@ -167,14 +168,15 @@ classify = (plain, reading, meaning) -> switch reading
       when "要る", "帰る", "切る", "喋る", "知る", "入る", "走る", "減る", "焦る", "限る", "蹴る"
          , "滑る", "握る", "練る", "参る", "交じる", "混じる", "嘲る", "覆る", "遮る", "罵る", "捻る"
          , "翻る", "滅入る", "蘇る" then new UVerb(plain, reading, meaning)
-      else switch reading[-2...-1]
-        # For i- and e- sounds, it's a ru-verb, except for the exceptions above.'
-        when "り", "み", "ひ", "に", "ち", "し", "き", "い"
-           , "れ", "め", "へ", "ね", "て", "せ", "け", "え"
-           , "ぴ", "び", "ぢ", "じ", "ぎ"
-           , "ぺ", "べ", "で", "ぜ", "げ" then new RuVerb(plain, reading, meaning)
-        # For a-, u- and o-sounds (= everything else), it's a u-verb.
-        else new UVerb(plain, reading, meaning)
+      else
+        if reading[-2...-1] in eSounds.concat(iSounds)
+          # For i- and e- sounds, it's a ru-verb, except for the exceptions above.'
+          new RuVerb(plain, reading, meaning)
+        else # For a-, u- and o-sounds (= everything else), it's a u-verb.
+          new UVerb(plain, reading, meaning)
+    when "い" then switch reading
+      when "嫌い", "奇麗", "綺麗", "きれい" then new NaAdjective(plain, reading, meaning)
+      else new IAdjective(plain, reading, meaning)
 
 words = (classify(w.plain, w.reading, w.meaning) for w in verbs.concat(adjectives))
 
@@ -187,5 +189,10 @@ $ = (s) ->
     document.getElementsByTagName(s)
 
 word = words[Math.floor(Math.random(words.length) * words.length)]
-$('#front').innerHTML = word.plain()
-$('#back').innerHTML = word.potential().negative()
+for elem in $('.replace')
+  want = elem.innerHTML
+  w = word
+  for conj in want.split(' ')
+    console.log(conj, 'on', w)
+    w = w[conj]()
+  elem.innerHTML = w
