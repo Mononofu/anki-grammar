@@ -175,7 +175,7 @@ classify = (plain, reading, meaning) -> switch reading
   when "する" then new Suru(plain, reading, meaning)
   when "くる" then new Kuru(plain, reading, meaning)
   when "いい" then new II(plain, reading, meaning)
-  else switch reading[-1...]
+  else switch plain[-1...]
     # Words ending in u-sound that is not る are u-verbs.
     when "う", "つ", "む", "ぶ", "ぬ", "す", "く", "ぐ" then new UVerb(plain, reading, meaning)
     # If they end in る, it depends on the sound preceding the る.

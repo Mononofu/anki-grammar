@@ -635,7 +635,7 @@
       case "いい":
         return new II(plain, reading, meaning);
       default:
-        switch (reading.slice(-1)) {
+        switch (plain.slice(-1)) {
           case "う":
           case "つ":
           case "む":
