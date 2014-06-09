@@ -19,6 +19,8 @@ class Word
   reading: -> @_reading
   meaning: -> @_meaning
 
+  toString: -> @plain()
+
 class Negative extends Word
   constructor: (@_plain) ->
   plain: -> @_plain
@@ -30,9 +32,8 @@ class Negative extends Word
 class Verb extends Word
   polite: -> new PoliteVerb(@stem())
   te: -> @past().replace(/た$/, "て").replace(/だ$/, "で")
-  conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
 
-class PoliteVerb
+class PoliteVerb extends Verb
   constructor: (@_plain) ->
   plain: -> @_plain + "ます"
   toString: -> @plain()
@@ -40,7 +41,7 @@ class PoliteVerb
   past: -> @_plain + "ました"
   volitional: -> @_plain + "ましょう"
 
-class PoliteVerbNegative
+class PoliteVerbNegative extends PoliteVerb
   constructor: (@_plain) ->
   plain: -> @_plain + "ません"
   toString: -> @plain()
@@ -52,6 +53,7 @@ class RuVerb extends Verb
   past: -> @stem() + "た" # Drop る and add た.
   potential: -> new RuVerb(@stem() + "られる")
   volitional: -> @stem() + "よう"
+  conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
 
 class UVerb extends Verb
   stem: -> @_plain.replaceLast(uSounds, iSounds)
@@ -75,6 +77,7 @@ class UVerb extends Verb
       .replace(/ぐ$/, "いだ")
   potential: -> new RuVerb(@_plain.replaceLast(uSounds, eSounds) + "る")
   volitional: -> @_plain.replaceLast(uSounds, oSounds) + "う"
+  conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
 
 class Suru extends Verb
   constructor: -> @_plain = "する"
@@ -82,6 +85,7 @@ class Suru extends Verb
   negative: -> new Negative("しない")
   past: -> "した"
   potential: -> new RuVerb("できる")
+  volitional: -> "しよう"
 
 class Kuru extends Verb
   constructor: -> @_plain = "くる"
@@ -89,21 +93,23 @@ class Kuru extends Verb
   negative: -> new Negative("こない")
   past: -> "きた"
   potential: -> new RuVerb("こられる")
+  volitional: -> "こよう"
 
 class Adjective extends Word
-  polite: -> new PoliteAdjective(@_plain)
+  polite: -> new PoliteAdjective(this)
+  toString: -> @plain()
 
-class PoliteAdjective
+class PoliteAdjective extends Adjective
   constructor: (@_plain) ->
   plain: -> @_plain + "です"
-  negative: -> new PoliteAdjectiveNegative(this)
-  past: -> @past() + "です"
-  pastNegative: -> @pastNegative() + "です"
+  toString: -> @plain()
+  negative: -> new PoliteAdjectiveNegative(@_plain.negative())
+  past: -> @_plain.past() + "です"
 
-class PoliteAdjectiveNegative
+class PoliteAdjectiveNegative extends PoliteAdjective
   constructor: (@_plain) ->
-  plain: -> @_plain.negative() + "です"
-  past: -> @_plain.negative().past() + "です"
+  plain: -> @_plain + "です"
+  past: -> @_plain.past() + "です"
 
 class PoliteNaAdjective extends PoliteAdjective
   past: -> @_plain + "でした"
@@ -190,9 +196,10 @@ $ = (s) ->
 
 word = words[Math.floor(Math.random(words.length) * words.length)]
 for elem in $('.replace')
-  want = elem.innerHTML
-  w = word
-  for conj in want.split(' ')
-    console.log(conj, 'on', w)
-    w = w[conj]()
-  elem.innerHTML = w
+  try
+    want = elem.innerHTML
+    w = word
+    for conj in want.split(' ')
+      w = w[conj]()
+    elem.innerHTML = w
+  catch error
