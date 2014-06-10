@@ -1,5 +1,5 @@
 (function() {
-  var $, Adjective, IAdjective, II, Kuru, NaAdjective, Negative, PoliteAdjective, PoliteAdjectiveNegative, PoliteNaAdjective, PoliteVerb, PoliteVerbNegative, RuVerb, Suru, UVerb, Verb, Word, aSounds, adjectives, candidates, classify, conj, eSounds, elem, iSounds, oSounds, query, uSounds, verbs, w, want, word, words, _i, _j, _len, _len2, _ref, _ref2,
+  var Adjective, IAdjective, II, Kuru, NaAdjective, PoliteAdjective, PoliteAdjectiveNegative, PoliteNaAdjective, PoliteVerb, PoliteVerbNegative, RuVerb, Suru, UVerb, Verb, Word, aSounds, adjectives, eSounds, iSounds, oSounds, uSounds, verbs, w,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
@@ -51,42 +51,6 @@
 
   })();
 
-  Negative = (function(_super) {
-
-    __extends(Negative, _super);
-
-    function Negative(_plain) {
-      this._plain = _plain;
-    }
-
-    Negative.prototype.plain = function() {
-      return this._plain;
-    };
-
-    Negative.prototype.toString = function() {
-      return this.plain();
-    };
-
-    Negative.prototype.past = function() {
-      return this._plain.replace(/い$/, "かった");
-    };
-
-    Negative.prototype.te = function() {
-      return this._plain.replace(/い$/, "くて");
-    };
-
-    Negative.prototype.conditional = function() {
-      return this._plain.replace(/い$/, "ければ");
-    };
-
-    Negative.prototype.adverb = function() {
-      return this._plain.replace(/い$/, "く");
-    };
-
-    return Negative;
-
-  })(Word);
-
   Verb = (function(_super) {
 
     __extends(Verb, _super);
@@ -101,6 +65,10 @@
 
     Verb.prototype.te = function() {
       return this.past().replace(/た$/, "て").replace(/だ$/, "で");
+    };
+
+    Verb.prototype.conditional = function() {
+      return this._plain.replaceLast(uSounds, eSounds) + "ば";
     };
 
     return Verb;
@@ -137,7 +105,7 @@
 
     return PoliteVerb;
 
-  })(Verb);
+  })(Word);
 
   PoliteVerbNegative = (function(_super) {
 
@@ -180,7 +148,7 @@
     };
 
     RuVerb.prototype.negative = function() {
-      return new Negative(this.stem() + "ない");
+      return new IAdjective(this.stem() + "ない");
     };
 
     RuVerb.prototype.past = function() {
@@ -193,10 +161,6 @@
 
     RuVerb.prototype.volitional = function() {
       return this.stem() + "よう";
-    };
-
-    RuVerb.prototype.conditional = function() {
-      return this._plain.replaceLast(uSounds, eSounds) + "ば";
     };
 
     return RuVerb;
@@ -229,7 +193,7 @@
             return this._plain.replace(/う$/, "わ").replaceLast(uSounds, aSounds) + "ない";
         }
       }).call(this);
-      return new Negative(base);
+      return new IAdjective(base);
     };
 
     UVerb.prototype.past = function() {
@@ -247,10 +211,6 @@
 
     UVerb.prototype.volitional = function() {
       return this._plain.replaceLast(uSounds, oSounds) + "う";
-    };
-
-    UVerb.prototype.conditional = function() {
-      return this._plain.replaceLast(uSounds, eSounds) + "ば";
     };
 
     return UVerb;
@@ -274,7 +234,7 @@
     };
 
     Suru.prototype.negative = function() {
-      return new Negative("しない");
+      return new IAdjective("しない");
     };
 
     Suru.prototype.past = function() {
@@ -310,7 +270,7 @@
     };
 
     Kuru.prototype.negative = function() {
-      return new Negative("こない");
+      return new IAdjective("こない");
     };
 
     Kuru.prototype.past = function() {
@@ -430,7 +390,7 @@
     };
 
     IAdjective.prototype.negative = function() {
-      return new Negative(this._plain.replace(/い$/, "くない"));
+      return new IAdjective(this._plain.replace(/い$/, "くない"));
     };
 
     IAdjective.prototype.past = function() {
@@ -482,7 +442,7 @@
     };
 
     NaAdjective.prototype.negative = function() {
-      return new Negative(this._plain + "じゃない");
+      return new IAdjective(this._plain + "じゃない");
     };
 
     NaAdjective.prototype.past = function() {
@@ -625,7 +585,7 @@
     }
   ];
 
-  classify = function(plain, reading, meaning) {
+  window.classify = function(plain, reading, meaning) {
     var _ref;
     switch (reading) {
       case "する":
@@ -698,7 +658,7 @@
     }
   };
 
-  words = (function() {
+  window.words = (function() {
     var _i, _len, _ref, _results;
     _ref = verbs.concat(adjectives);
     _results = [];
@@ -708,64 +668,5 @@
     }
     return _results;
   })();
-
-  $ = function(s) {
-    if (s[0] === "#") {
-      return document.getElementById(s.substring(1));
-    } else if (s[0] === ".") {
-      return document.getElementsByClassName(s.substring(1));
-    } else {
-      return document.getElementsByTagName(s);
-    }
-  };
-
-  word = words[Math.floor(Math.random(words.length) * words.length)];
-
-  if (location.hash !== "") {
-    query = location.hash.slice(1);
-    $('#query').value = query;
-    candidates = (function() {
-      var _i, _len, _results;
-      _results = [];
-      for (_i = 0, _len = words.length; _i < _len; _i++) {
-        w = words[_i];
-        if (w.plain() === query || w.reading() === query) _results.push(w);
-      }
-      return _results;
-    })();
-    if (candidates.length > 0) {
-      word = candidates[0];
-    } else {
-      word = classify(query, query, "n/a");
-    }
-  }
-
-  _ref = $('.replace');
-  for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-    elem = _ref[_i];
-    try {
-      want = elem.innerHTML;
-      w = word;
-      _ref2 = want.split(' ');
-      for (_j = 0, _len2 = _ref2.length; _j < _len2; _j++) {
-        conj = _ref2[_j];
-        w = w[conj]();
-      }
-      elem.innerHTML = w;
-    } catch (error) {
-
-    }
-  }
-
-  window.random = function() {
-    location.hash = "";
-    return location.reload();
-  };
-
-  window.conjugate = function() {
-    location.hash = $('#query').value;
-    location.reload();
-    return false;
-  };
 
 }).call(this);

@@ -21,20 +21,12 @@ class Word
 
   toString: -> @plain()
 
-class Negative extends Word
-  constructor: (@_plain) ->
-  plain: -> @_plain
-  toString: -> @plain()
-  past: -> @_plain.replace(/い$/, "かった")
-  te: -> @_plain.replace(/い$/, "くて")
-  conditional: -> @_plain.replace(/い$/, "ければ")
-  adverb: -> @_plain.replace(/い$/, "く")
-
 class Verb extends Word
   polite: -> new PoliteVerb(@stem())
   te: -> @past().replace(/た$/, "て").replace(/だ$/, "で")
+  conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
 
-class PoliteVerb extends Verb
+class PoliteVerb extends Word
   constructor: (@_plain) ->
   plain: -> @_plain + "ます"
   toString: -> @plain()
@@ -51,11 +43,10 @@ class PoliteVerbNegative extends PoliteVerb
 class RuVerb extends Verb
   type: -> "ru-verb"
   stem: -> @_plain.replace(/る$/, "")
-  negative: -> new Negative(@stem() + "ない") # Drop る and add ない.
+  negative: -> new IAdjective(@stem() + "ない") # Drop る and add ない.
   past: -> @stem() + "た" # Drop る and add た.
   potential: -> new RuVerb(@stem() + "られる")
   volitional: -> @stem() + "よう"
-  conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
 
 class UVerb extends Verb
   type: -> "u-verb"
@@ -65,7 +56,7 @@ class UVerb extends Verb
       when "ある" then "ない" # Exception: ある turns into ない.
       # For other words, replace u-sound with a-equivalent, add ない (except for う turns into わ).
       else @_plain.replace(/う$/, "わ").replaceLast(uSounds, aSounds) + "ない"
-    new Negative(base)
+    new IAdjective(base)
   past: -> switch @_plain
     when "行く" then "行った" # Exception: 行く turns into 行った.
     else @_plain
@@ -80,12 +71,11 @@ class UVerb extends Verb
       .replace(/ぐ$/, "いだ")
   potential: -> new RuVerb(@_plain.replaceLast(uSounds, eSounds) + "る")
   volitional: -> @_plain.replaceLast(uSounds, oSounds) + "う"
-  conditional: -> @_plain.replaceLast(uSounds, eSounds) + "ば"
 
 class Suru extends Verb
   type: -> "suru-verb"
   stem: -> "し"
-  negative: -> new Negative("しない")
+  negative: -> new IAdjective("しない")
   past: -> "した"
   potential: -> new RuVerb("できる")
   volitional: -> "しよう"
@@ -93,7 +83,7 @@ class Suru extends Verb
 class Kuru extends Verb
   type: -> "kuru-verb"
   stem: -> "き"
-  negative: -> new Negative("こない")
+  negative: -> new IAdjective("こない")
   past: -> "きた"
   potential: -> new RuVerb("こられる")
   volitional: -> "こよう"
@@ -120,7 +110,7 @@ class PoliteNaAdjective extends PoliteAdjective
 class IAdjective extends Adjective
   type: -> "i-adjective"
   adverb: -> @_plain.replace(/い$/, "く")
-  negative: -> new Negative(@_plain.replace(/い$/, "くない"))
+  negative: -> new IAdjective(@_plain.replace(/い$/, "くない"))
   past: -> @_plain.replace(/い$/, "かった")
   te: -> @_plain.replace(/い$/, "くて")
   conditional: -> @_plain.replace(/い$/, "ければ")
@@ -131,7 +121,7 @@ class II extends IAdjective
 class NaAdjective extends Adjective
   type: -> "na-adjective"
   adverb: -> @_plain + "に"
-  negative: -> new Negative(@_plain + "じゃない")
+  negative: -> new IAdjective(@_plain + "じゃない")
   past: -> @_plain + "だった"
   te: -> @_plain + "で"
   conditional: -> @_plain + "であれば"
@@ -171,7 +161,7 @@ adjectives = [
   {plain: "高い", reading: "たかい", meaning: "tall"}
 ]
 
-classify = (plain, reading, meaning) -> switch reading
+window.classify = (plain, reading, meaning) -> switch reading
   when "する" then new Suru(plain, reading, meaning)
   when "くる" then new Kuru(plain, reading, meaning)
   when "いい" then new II(plain, reading, meaning)
@@ -196,40 +186,4 @@ classify = (plain, reading, meaning) -> switch reading
       else new IAdjective(plain, reading, meaning)
     else new NaAdjective(plain, reading, meaning)
 
-words = (classify(w.plain, w.reading, w.meaning) for w in verbs.concat(adjectives))
-
-$ = (s) ->
-  if s[0] == "#"
-    document.getElementById(s.substring(1))
-  else if s[0] == "."
-    document.getElementsByClassName(s.substring(1))
-  else
-    document.getElementsByTagName(s)
-
-word = words[Math.floor(Math.random(words.length) * words.length)]
-if location.hash != ""
-  query = location.hash[1...]
-  $('#query').value = query
-  candidates = (w for w in words when w.plain() == query or w.reading() == query)
-  if candidates.length > 0
-    word = candidates[0]
-  else
-    word = classify(query, query, "n/a")
-
-for elem in $('.replace')
-  try
-    want = elem.innerHTML
-    w = word
-    for conj in want.split(' ')
-      w = w[conj]()
-    elem.innerHTML = w
-  catch error
-
-window.random = ->
-  location.hash = ""
-  location.reload()
-
-window.conjugate = ->
-  location.hash = $('#query').value
-  location.reload()
-  return false
+window.words = (classify(w.plain, w.reading, w.meaning) for w in verbs.concat(adjectives))
