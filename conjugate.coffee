@@ -20,6 +20,7 @@ class Word
   meaning: -> @_meaning
 
   toString: -> @plain()
+  conjugate: (conj) -> conj.split(' ').reduce(((w, c) -> w[c]()), this)
 
 class Verb extends Word
   polite: -> new PoliteVerb(@stem())
