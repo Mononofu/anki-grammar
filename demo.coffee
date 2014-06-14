@@ -28,10 +28,7 @@ if location.hash != ""
 for elem in $('.replace')
   try
     want = elem.innerHTML
-    w = word
-    for conj in want.split(' ')
-      w = w[conj]()
-    elem.innerHTML = w
+    elem.innerHTML = word.conjugate(want)
   catch error
     elem.innerHTML = ""
 
