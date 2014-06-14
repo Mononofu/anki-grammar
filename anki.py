@@ -1,4 +1,5 @@
 import commands
+import os
 
 template_front = """<span id="word-type" class="hidden">{{WordType}}</span>
 <span class="required-conjugation hidden">{{Front}}</span>
@@ -101,15 +102,18 @@ def escape_html(html):
 # Compile coffeescript to JS
 commands.getoutput("coffee --compile *coffee")
 
-front = template_front % ("%s\n\n\n%s" % (read_js("conjugate"), read_js("anki")))
-with open("anki_front.html", "w") as f:
+if not os.path.exists("anki/"):
+  os.makedirs("anki/")
+
+front = template_front % ("%s\n\n\n%s" % (read_js("conjugate"), read_js("anki_front")))
+with open("anki/front.html", "w") as f:
   f.write(front)
 
 back = template_back % read_js("anki_back")
-with open("anki_back.html", "w") as f:
+with open("anki/back.html", "w") as f:
   f.write(back)
 
-with open("anki.css", "w") as f:
+with open("anki/main.css", "w") as f:
   f.write(template_css)
 
 with open("anki.html", "w") as f:

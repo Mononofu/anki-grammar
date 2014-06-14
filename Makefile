@@ -2,4 +2,4 @@ all:
 	python anki.py
 
 clean:
-	rm -f anki_*js anki_*html anki.css
+	rm -rf anki/ anki_back.js anki_front.js
