@@ -13,11 +13,14 @@ template_front = """<span id="word-type" class="hidden">{{WordType}}</span>
 %s
 </script>"""
 
-template_back = """{{FrontSide}}
+template_back = """
+{{Back}}  of <span class="replace">{{Front}}</span>
 
 <hr id="answer">
 
-<span id="replace-back">{{Back}}</span>
+<span class="replace">{{Back}}</span>
+<br><br>
+from <span class="replace">plain</span> (<span class="replace">reading</span>), <i><span class="replace">meaning</span></i>
 
 <script>
 %s
