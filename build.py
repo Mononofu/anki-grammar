@@ -13,8 +13,7 @@ template_front = """<span id="word-type" class="hidden">{{WordType}}</span>
 %s
 </script>"""
 
-template_back = """
-{{Back}}  of <span class="replace">{{Front}}</span>
+template_back = """{{Back}}  of <span class="replace">{{Front}}</span>
 
 <hr id="answer">
 
