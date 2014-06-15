@@ -19,7 +19,9 @@ template_back = """{{Back}}  of <span class="replace">{{Front}}</span>
 
 <span class="replace">{{Back}}</span>
 <br><br>
-from <span class="replace">plain</span> (<span class="replace">reading</span>), <i><span class="replace">meaning</span></i>
+from <span class="replace">plain</span> (<span class="replace">reading</span>),
+  <i><span class="replace">meaning</span></i>
+  <span style="color:grey">[<span class="replace">type</span>]</span>
 
 <script>
 %s
