@@ -109,11 +109,13 @@ commands.getoutput("coffee --compile *coffee")
 if not os.path.exists("anki/"):
   os.makedirs("anki/")
 
-front = template_front % ("%s\n\n\n%s" % (read_js("conjugate"), read_js("anki_front")))
+front = template_front % "\n\n\n".join(
+    [read_js("conjugate"), read_js("util"), read_js("anki_front")])
 with open("anki/front.html", "w") as f:
   f.write(front)
 
-back = template_back % read_js("anki_back")
+back = template_back % "\n\n\n".join(
+    [read_js("conjugate"), read_js("util"), read_js("anki_back")])
 with open("anki/back.html", "w") as f:
   f.write(back)
 

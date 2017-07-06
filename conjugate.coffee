@@ -60,7 +60,7 @@ class UVerb extends Verb
     new IAdjective(base)
   past: -> switch @_plain
     when "行く" then "行った" # Exception: 行く turns into 行った.
-    else @_plain
+    else (@_plain
       .replace(/う$/, "った")
       .replace(/つ$/, "った")
       .replace(/る$/, "った")
@@ -69,7 +69,7 @@ class UVerb extends Verb
       .replace(/ぬ$/, "んだ")
       .replace(/す$/, "した")
       .replace(/く$/, "いた")
-      .replace(/ぐ$/, "いだ")
+      .replace(/ぐ$/, "いだ"))
   potential: -> new RuVerb(@_plain.replaceLast(uSounds, eSounds) + "る")
   volitional: -> @_plain.replaceLast(uSounds, oSounds) + "う"
 
@@ -188,3 +188,8 @@ window.classify = (plain, reading, meaning) -> switch reading
     else new NaAdjective(plain, reading, meaning)
 
 window.words = (classify(w.plain, w.reading, w.meaning) for w in verbs.concat(adjectives))
+
+window.getByPlain = (plain) ->
+  for w in window.words
+    if w.plain() == plain
+      return w
